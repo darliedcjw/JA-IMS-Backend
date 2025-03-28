@@ -13,6 +13,7 @@ from Utils.Logger import createLogger
 
 # Logger
 logger = createLogger()
+logger.info("DBAgent's logger is warm...")
 
 
 class DBAgent:
@@ -24,12 +25,12 @@ class DBAgent:
         self.database = os.getenv("DB_DATABASE")
         self.table = os.getenv("DB_TABLE")
 
-    def insert(self, payload):
+    def upsert(self, upsertPayload):
         logger.info(f"Inserting payload...")
         try:
             self._verifyDatabase()
             self._verifyTable()
-            name, _, _ = payload
+            name, _, _ = upsertPayload
             connection = self._establishConnection(useDatabase=True)
             cursor = connection.cursor(buffered=True)
 
@@ -41,7 +42,7 @@ class DBAgent:
                 last_updated_dt = NOW()
             """
 
-            cursor.execute(insertQuery, payload)
+            cursor.execute(insertQuery, upsertPayload)
 
             searchQuery = f"""
             SELECT id FROM {self.table}

@@ -4,7 +4,7 @@ from uuid import uuid4
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 
-from Utils.Schemas import VAL_INSERT
+from Utils.Schemas import VAL_UPSERT
 from Utils.Logger import createLogger, sessionIDVar
 
 from Services.IMSAgent import IMSAgent
@@ -38,14 +38,19 @@ async def session_tracking_middleware(request: Request, call_next):
 
 
 # API: Insert/Update
-@app.post("/insert")
-def insert(insertPayload: VAL_INSERT):
+@app.post("/upsert")
+def upsert(upsertPayload: VAL_UPSERT):
     logger.info("Invoked insert API...")
-    itemID = dbAgent.insert(imsAgent.insert(insertPayload.model_dump()))
+    itemID = dbAgent.upsert(imsAgent.upsert(upsertPayload.model_dump()))
     response = {"id": itemID}
     logger.info("Completed insert API...")
 
     return JSONResponse(response, status_code=200)
+
+
+@app.post("/query")
+def query(queryPayload):
+    return
 
 
 if __name__ == "__main__":

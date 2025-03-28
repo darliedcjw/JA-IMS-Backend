@@ -9,10 +9,10 @@ class IMSAgent:
     def __init__(self):
         pass
 
-    def insert(self, insertPayload):
-        logger.info("Packinging insert payload...")
+    def upsert(self, upsertPayload):
+        logger.info("Packinging upsert payload...")
         return (
-            insertPayload.get("name"),
-            insertPayload.get("category"),
-            insertPayload.get("price"),
+            upsertPayload.get("name"),
+            upsertPayload.get("category"),
+            upsertPayload.get("price"),
         )
