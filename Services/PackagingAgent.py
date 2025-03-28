@@ -24,12 +24,18 @@ class PackagingAgent:
 
     def queryIn(self, queryInPayload):
         logger.info("Packinging queryIn payload...")
-        return (
-            datetime.strftime(queryInPayload.get("dt_from"), "%Y-%m-%d %H:%M:%S"),
-            datetime.strftime(queryInPayload.get("dt_to"), "%Y-%m-%d %H:%M:%S"),
-            queryInPayload.get("category"),
-            queryInPayload.get("category"),
+        dt_from = (
+            datetime.strftime(queryInPayload.get("dt_from"), "%Y-%m-%d %H:%M:%S")
+            if queryInPayload.get("dt_from")
+            else None
         )
+        dt_to = (
+            datetime.strftime(queryInPayload.get("dt_to"), "%Y-%m-%d %H:%M:%S")
+            if queryInPayload.get("dt_from")
+            else None
+        )
+        category = queryInPayload.get("category")
+        return (dt_from, dt_to, category, category)
 
     def queryOut(self, queryOutPayload):
         logger.info("Packinging queryOut payload...")

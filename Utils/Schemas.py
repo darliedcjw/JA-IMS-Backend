@@ -14,6 +14,14 @@ class VAL_QUERY(BaseModel):
     dt_to: Optional[datetime] = None
     category: Optional[str] = None
 
+    @field_validator("category")
+    def check_empty_str(cls, v):
+        if v == "":
+            raise ValueError(
+                "Category cannot be an empty string. Kindly indicate null or omit the key entirely."
+            )
+        return v
+
     @model_validator(mode="after")
     def check_date_pair(self):
         # Both must be empty or present
@@ -23,7 +31,7 @@ class VAL_QUERY(BaseModel):
             )
 
         # dt_from must be before dt_to
-        elif self.dt_from > self.dt_to:
+        elif (self.dt_from and self.dt_to) and (self.dt_from > self.dt_to):
             raise ValueError("dt_from must be before dt_to")
 
         return self
