@@ -1,0 +1,24 @@
+version: 1
+formatters:
+  basic:
+    format: "%(asctime)s - %(session_id)s - %(name)s - %(levelname)s - %(message)s"
+handlers:
+  consoleHandlerStdout:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: basic
+    stream: ext://sys.stdout
+  consoleHandlerStderr:
+    class: logging.StreamHandler
+    level: ERROR
+    formatter: basic
+    stream: ext://sys.stderr
+  fileHandler:
+    class: logging.FileHandler
+    level: INFO
+    formatter: basic
+    filename: Logs/app.log
+    mode: a
+root:
+  level: INFO
+  handlers: [consoleHandlerStdout, consoleHandlerStderr, fileHandler]
