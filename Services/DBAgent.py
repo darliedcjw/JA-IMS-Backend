@@ -25,12 +25,12 @@ class DBAgent:
         self.database = os.getenv("DB_DATABASE")
         self.table = os.getenv("DB_TABLE")
 
-    def upsert(self, upsertPayload):
-        logger.info(f"Inserting payload...")
+    def upsert(self, upsertInPayload):
+        logger.info(f"Upserting payload...")
         try:
             self._verifyDatabase()
             self._verifyTable()
-            name, _, _ = upsertPayload
+            name, _, _ = upsertInPayload
             connection = self._establishConnection(useDatabase=True)
             cursor = connection.cursor(buffered=True)
 
@@ -42,7 +42,7 @@ class DBAgent:
                 last_updated_dt = NOW()
             """
 
-            cursor.execute(insertQuery, upsertPayload)
+            cursor.execute(insertQuery, upsertInPayload)
 
             searchQuery = f"""
             SELECT id FROM {self.table}
@@ -50,10 +50,49 @@ class DBAgent:
             """
 
             cursor.execute(searchQuery, (name,))
-            itemID = cursor.fetchone()[0]
+            itemID = cursor.fetchone()
             connection.commit()
 
             return itemID
+
+        except mysql.connector.Error as dbError:
+            eMsg = f"Database Error: {dbError}"
+            logger.error(eMsg)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=eMsg,
+            )
+
+        finally:
+            if "connection" in locals() and connection.is_connected():
+                cursor.close()
+                connection.close()
+
+    def query(self, queryInPayload):
+        logger.info(f"Querying payload...")
+        try:
+            self._verifyDatabase()
+            self._verifyTable()
+            connection = self._establishConnection(useDatabase=True)
+            cursor = connection.cursor(buffered=True)
+
+            filterQuery = f"""
+            SELECT id, name, category, price FROM {self.table}
+            WHERE
+                -- Date range filter (both must be provided or omitted)
+                last_updated_dt BETWEEN 
+                    COALESCE(%s, '1000-01-01') AND 
+                    COALESCE(%s, '9999-12-31')
+                -- Category filter (optional)
+                AND (category = %s OR %s IS NULL)
+            """
+
+            cursor.execute(filterQuery, queryInPayload)
+
+            result = cursor.fetchall()
+            connection.commit()
+
+            return result
 
         except mysql.connector.Error as dbError:
             eMsg = f"Database Error: {dbError}"
@@ -99,7 +138,7 @@ class DBAgent:
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL UNIQUE,
             category VARCHAR(100) NOT NULL,
-            price DECIMAL (10, 2) NOT NULL,
+            price FLOAT NOT NULL,
             last_updated_dt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )
             """

@@ -4,10 +4,10 @@ from uuid import uuid4
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 
-from Utils.Schemas import VAL_UPSERT
+from Utils.Schemas import VAL_UPSERT, VAL_QUERY
 from Utils.Logger import createLogger, sessionIDVar
 
-from Services.IMSAgent import IMSAgent
+from Services.PackagingAgent import PackagingAgent
 from Services.DBAgent import DBAgent
 
 app = FastAPI()
@@ -17,7 +17,7 @@ logger = createLogger()
 logger.info("API's logger is warm...")
 
 # IMS Agent: Packaging Payload
-imsAgent = IMSAgent()
+packagingAgent = PackagingAgent()
 logger.info("IMSAgent is warm...")
 
 # DB Agent: Sending Payload
@@ -40,17 +40,23 @@ async def session_tracking_middleware(request: Request, call_next):
 # API: Insert/Update
 @app.post("/upsert")
 def upsert(upsertPayload: VAL_UPSERT):
-    logger.info("Invoked insert API...")
-    itemID = dbAgent.upsert(imsAgent.upsert(upsertPayload.model_dump()))
-    response = {"id": itemID}
-    logger.info("Completed insert API...")
+    logger.info("Invoked upsert API...")
+    listID = dbAgent.upsert(packagingAgent.upsertIn(upsertPayload.model_dump()))
+    response = packagingAgent.upsertOut(listID)
+    logger.info("Completed upsert API...")
 
     return JSONResponse(response, status_code=200)
 
 
 @app.post("/query")
-def query(queryPayload):
-    return
+def query(queryPayload: VAL_QUERY):
+    logger.info("Invoked query API...")
+    Listitems = dbAgent.query(packagingAgent.queryIn(queryPayload.model_dump()))
+    items = packagingAgent.queryOut(Listitems)
+    response = {"items": [items]}
+    logger.info("Completed query API...")
+
+    return JSONResponse(response, status_code=200)
 
 
 if __name__ == "__main__":
