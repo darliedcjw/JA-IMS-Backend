@@ -61,8 +61,7 @@ def upsert(upsertPayload: VAL_UPSERT):
 def query(queryPayload: VAL_QUERY):
     logger.info("Invoked query API...")
     Listitems = dbAgent.query(packagingAgent.queryIn(queryPayload.model_dump()))
-    items = packagingAgent.queryOut(Listitems)
-    response = {"items": [items]}
+    response = packagingAgent.queryOut(Listitems)
     logger.info("Completed query API...")
 
     return JSONResponse(response, status_code=200)
