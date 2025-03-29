@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from Utils.Schemas import VAL_UPSERT, VAL_QUERY
 from Utils.Logger import createLogger, sessionIDVar
@@ -11,6 +12,14 @@ from Services.PackagingAgent import PackagingAgent
 from Services.DBAgent import DBAgent
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # List of allowed origins
+    allow_credentials=True,  # Allow cookies and credentials
+    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],
+)
 
 # Logger
 logger = createLogger()
