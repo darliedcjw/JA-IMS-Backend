@@ -15,7 +15,7 @@ class PackagingAgent:
         return (
             upsertInPayload.get("name"),
             upsertInPayload.get("category"),
-            round(upsertInPayload.get("price"), 2),
+            f"{upsertInPayload.get('price'):.2f}",
         )
 
     def upsertOut(self, upsertOutPayload):
@@ -31,7 +31,7 @@ class PackagingAgent:
         )
         dt_to = (
             datetime.strftime(queryInPayload.get("dt_to"), "%Y-%m-%d %H:%M:%S")
-            if queryInPayload.get("dt_from")
+            if queryInPayload.get("dt_to")
             else None
         )
         category = queryInPayload.get("category")
@@ -39,10 +39,15 @@ class PackagingAgent:
 
     def queryOut(self, queryOutPayload):
         logger.info("Packinging queryOut payload...")
-        totalPrice = sum(item[3] for item in queryOutPayload)
+        totalPrice = sum(float(item[3]) for item in queryOutPayload)
         return {
             "items": [
-                {"id": item[0], "name": item[1], "category": item[2], "price": item[3]}
+                {
+                    "id": item[0],
+                    "name": item[1],
+                    "category": item[2],
+                    "price": float(item[3]),
+                }
                 for item in queryOutPayload
             ],
             "total_price": totalPrice,

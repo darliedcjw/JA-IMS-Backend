@@ -1,10 +1,6 @@
 import os
-import sys
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import mysql.connector
-from mysql.connector import errors
 from fastapi import status
 from fastapi.exceptions import HTTPException
 from dotenv import load_dotenv
@@ -138,7 +134,7 @@ class DBAgent:
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(100) NOT NULL UNIQUE,
             category VARCHAR(100) NOT NULL,
-            price FLOAT NOT NULL,
+            price VARCHAR(100) NOT NULL,
             last_updated_dt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )
             """
@@ -165,7 +161,3 @@ class DBAgent:
             password=self.password,
             database=self.database if useDatabase else None,
         )
-
-
-if __name__ == "__main__":
-    DBAgent()

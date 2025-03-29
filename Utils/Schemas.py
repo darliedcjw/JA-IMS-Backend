@@ -24,14 +24,8 @@ class VAL_QUERY(BaseModel):
 
     @model_validator(mode="after")
     def check_date_pair(self):
-        # Both must be empty or present
-        if (self.dt_from is None) != (self.dt_to is None):
-            raise ValueError(
-                "Both dt_from and dt_to must be provided or omitted together"
-            )
-
         # dt_from must be before dt_to
-        elif (self.dt_from and self.dt_to) and (self.dt_from > self.dt_to):
+        if (self.dt_from and self.dt_to) and (self.dt_from > self.dt_to):
             raise ValueError("dt_from must be before dt_to")
 
         return self
