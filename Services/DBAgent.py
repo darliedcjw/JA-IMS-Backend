@@ -1,9 +1,11 @@
 import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import mysql.connector
 from fastapi import status
 from fastapi.exceptions import HTTPException
-from dotenv import load_dotenv
 
 from Utils.Logger import createLogger
 
@@ -14,7 +16,6 @@ logger.info("DBAgent's logger is warm...")
 
 class DBAgent:
     def __init__(self):
-        load_dotenv()
         self.host = os.getenv("DB_HOST")
         self.user = os.getenv("DB_USER")
         self.password = os.getenv("DB_PASSWORD")
@@ -109,6 +110,7 @@ class DBAgent:
             connection = self._establishConnection(useDatabase=False)
             cursor = connection.cursor()
             cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.database}")
+            connection.commit()
 
         except mysql.connector.Error as dbError:
             eMsg = f"Database Error: {dbError}"
@@ -140,6 +142,7 @@ class DBAgent:
             """
 
             cursor.execute(query)
+            connection.commit()
 
         except mysql.connector.Error as dbError:
             eMsg = f"Database Error: {dbError}"
