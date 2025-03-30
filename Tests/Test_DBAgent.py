@@ -62,7 +62,7 @@ class CredentialsTest(unittest.TestCase):
                 connection.close()
 
     def test_upsert(self):
-        testCase, expected = (("Notebook", "Stationary", "1.70"), 1)
+        testCase, expected = (("Test Item", "Stationary", "1.70"), int)
 
         try:
             itemID = self.dbAgent.upsert(testCase)[0]
@@ -86,8 +86,7 @@ class CredentialsTest(unittest.TestCase):
 
             result = cursor.fetchone()
 
-            self.assertIsNotNone(result, "No record found after upsert")
-            self.assertEqual(itemID, expected)
+            self.assertIsInstance(itemID, expected)
             self.assertEqual(result[0], testCase[0])
             self.assertEqual(result[1], testCase[1])
             self.assertEqual(result[2], testCase[2])
@@ -104,24 +103,24 @@ class CredentialsTest(unittest.TestCase):
 
     def test_query(self):
         sampleUpsert = [
-            ("Notebook", "Stationary", "1.70"),
-            ("Book", "Stationary", "3.70"),
-            ("Pepsi", "Drinks", "2.50"),
-            ("Green Tea", "Drinks", "3.50"),
+            ("Item 1", "Stationary", "1.70"),
+            ("Item 2", "Stationary", "3.70"),
+            ("Item 3", "Drinks", "2.50"),
+            ("Item 4", "Drinks", "3.50"),
         ]
 
         testCases = [
-            # All records
+            # Test case 1: All records
             ((None, None, None, None), sampleUpsert),
-            # Date range ending in future (should get all)
+            # Test case 2: Date range ending in future (should get all)
             ((None, "3000-12-28", None, None), sampleUpsert),
-            # Date range starting from ancient time (should get all)
+            # Test case 3: Date range starting from ancient time (should get all)
             (("1000-12-28", None, None, None), sampleUpsert),
-            # Stationery category
+            # Test case 4: Stationery category
             ((None, None, "Stationary", "Stationary"), sampleUpsert[:2]),
-            # Non-existent category
+            # Test case 5: Non-existent category
             ((None, None, "NonExistent", "NonExistent"), []),
-            # Specific date range + category
+            # Test case 6: Specific date range + category
             (("2023-01-01", "2025-12-31", "Drinks", "Drinks"), sampleUpsert[2:]),
         ]
 

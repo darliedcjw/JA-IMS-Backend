@@ -29,3 +29,9 @@ class VAL_QUERY(BaseModel):
             raise ValueError("dt_from must be before dt_to")
 
         return self
+
+
+if __name__ == "__main__":
+    print(
+        VAL_UPSERT(name="Test Item", category="Electronics", price="99.99").model_dump()
+    )
