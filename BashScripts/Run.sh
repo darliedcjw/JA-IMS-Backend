@@ -53,3 +53,4 @@ docker start mysql-ims || { echo "Failed to stop MySQL container"; exit 1; }
 
 echo "Running Application"
 gunicorn -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:2000 API:app || { echo "Failed to start application"; exit 1; }
+docker stop mysql-ims
