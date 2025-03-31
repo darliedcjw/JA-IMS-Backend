@@ -13,7 +13,7 @@ class TestPackagingAgent(unittest.TestCase):
         super().__init__(methodName)
         self.packagingAgent = PackagingAgent()
 
-    def test_upsertIn(self):
+    def test_1_upsertIn(self):
         """Test the upsertIn method."""
 
         testCases = [
@@ -38,7 +38,7 @@ class TestPackagingAgent(unittest.TestCase):
                 f"Expected: {expected}\nGot: {result}",
             )
 
-    def test_upsertOut(self):
+    def test_2_upsertOut(self):
         """Test the upsertOut method."""
 
         # Test case 1: Normal input
@@ -47,7 +47,7 @@ class TestPackagingAgent(unittest.TestCase):
         result = self.packagingAgent.upsertOut(testCase)
         self.assertEqual(result, expected)
 
-    def test_queryIn(self):
+    def test_3_queryIn(self):
         """Test the queryIn method."""
 
         dt_from = datetime(2023, 1, 1, 0, 0, 0)
@@ -90,7 +90,7 @@ class TestPackagingAgent(unittest.TestCase):
                 f"Expected: {expected}\nGot: {result}",
             )
 
-    def test_queryOut(self):
+    def test_4_queryOut(self):
         """Test the queryOut method."""
 
         testCases = [
@@ -156,7 +156,7 @@ class TestPackagingAgent(unittest.TestCase):
                 f"Expected: {expected}\nGot: {result}",
             )
 
-    def test_advanceQueryIn(self):
+    def test_5_advanceQueryIn(self):
         """Test the advanceQueryIn method."""
 
         testCases = [
@@ -173,12 +173,17 @@ class TestPackagingAgent(unittest.TestCase):
                 },
                 (
                     "notebook",
+                    "notebook",
+                    "Stationary",
                     "Stationary",
                     10.50,
                     50.75,
                     "price",
-                    "asc",
+                    "price",
+                    "price",
                     10,
+                    0,
+                    "asc",
                 ),
             ),
             # Test case 2: Different pagination values
@@ -194,12 +199,17 @@ class TestPackagingAgent(unittest.TestCase):
                 },
                 (
                     "pen",
+                    "pen",
+                    "Office Supplies",
                     "Office Supplies",
                     1.99,
                     5.99,
                     "name",
+                    "name",
+                    "name",
+                    20,
+                    20,
                     "desc",
-                    40,  # page * limit = 2 * 20
                 ),
             ),
             # Test case 3: Rounding of price values
@@ -215,12 +225,17 @@ class TestPackagingAgent(unittest.TestCase):
                 },
                 (
                     "eraser",
+                    "eraser",
+                    "School Supplies",
                     "School Supplies",
                     0.33,
                     9.67,
                     "category",
+                    "category",
+                    "category",
+                    15,
+                    30,
                     "asc",
-                    45,
                 ),
             ),
             # Test case 4: Large pagination values
@@ -236,12 +251,17 @@ class TestPackagingAgent(unittest.TestCase):
                 },
                 (
                     "marker",
+                    "marker",
+                    "Art Supplies",
                     "Art Supplies",
                     5.00,
                     25.00,
                     "price",
+                    "price",
+                    "price",
+                    100,
+                    900,
                     "desc",
-                    1000,
                 ),
             ),
         ]
@@ -256,7 +276,7 @@ class TestPackagingAgent(unittest.TestCase):
             )
 
 
-def test_advanceQueryOut(self):
+def test_6_advanceQueryOut(self):
     """Test the advanceQueryOut method."""
 
     testCases = [

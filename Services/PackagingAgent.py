@@ -67,13 +67,18 @@ class PackagingAgent:
         logger.info("Packaging advanceQueryIn payload...")
         return (
             advanceQueryInPayload.get("filters").get("name"),
+            advanceQueryInPayload.get("filters").get("name"),
+            advanceQueryInPayload.get("filters").get("category"),
             advanceQueryInPayload.get("filters").get("category"),
             round(advanceQueryInPayload.get("filters").get("price_range")[0], 2),
             round(advanceQueryInPayload.get("filters").get("price_range")[1], 2),
             advanceQueryInPayload.get("sort").get("field"),
-            advanceQueryInPayload.get("sort").get("order"),
-            advanceQueryInPayload.get("pagination").get("page")
+            advanceQueryInPayload.get("sort").get("field"),
+            advanceQueryInPayload.get("sort").get("field"),
+            advanceQueryInPayload.get("pagination").get("limit"),
+            (advanceQueryInPayload.get("pagination").get("page") - 1)
             * advanceQueryInPayload.get("pagination").get("limit"),
+            advanceQueryInPayload.get("sort").get("order"),
         )
 
     def advanceQueryOut(self, advanceQueryOutPayload, advanceQueryInPayload):

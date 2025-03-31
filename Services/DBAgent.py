@@ -114,11 +114,26 @@ class DBAgent:
             connection = self._establishConnection(useDatabase=True)
             cursor = connection.cursor(buffered=True)
 
+            advanceQueryInPayload, sortDirection = (
+                advanceQueryInPayload[:-1],
+                advanceQueryInPayload[-1],
+            )
+
+            orderDirection = "ASC" if sortDirection == "asc" else "DESC"
+
             filterQuery = f"""
-            SELECT id, name, category, price FROM {self.table}
-            WHERE name = %s AND category = %s AND CAST(price as DECIMAL(10, 2)) BETWEEN %s and %s
-            ORDER BY %s %s
-            LIMIT %s
+            SELECT id, name, category, price 
+            FROM {self.table}
+            WHERE 
+                (%s IS NULL OR name = %s)
+                AND (%s IS NULL OR category = %s)
+                AND CAST(price AS DECIMAL(10, 2)) BETWEEN %s AND %s
+            ORDER BY 
+                CASE WHEN %s = 'price' THEN CAST(price AS DECIMAL(10, 2)) END 
+                    * {'1' if orderDirection == 'ASC' else '-1'},
+                CASE WHEN %s = 'category' THEN category END {orderDirection},
+                CASE WHEN %s = 'name' THEN name END {orderDirection}
+            LIMIT %s OFFSET %s;
             """
 
             cursor.execute(filterQuery, advanceQueryInPayload)

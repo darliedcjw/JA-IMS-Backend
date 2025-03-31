@@ -32,8 +32,8 @@ class VAL_QUERY(BaseModel):
 
 
 class Filters(BaseModel):
-    name: str
-    category: str
+    name: Optional[str] = None
+    category: Optional[str] = None
     price_range: List[float]
 
     @model_validator(mode="after")

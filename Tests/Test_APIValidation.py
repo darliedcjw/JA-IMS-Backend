@@ -11,7 +11,7 @@ from Utils.Schemas import *
 
 class TestAPIValidation(unittest.TestCase):
 
-    def test_val_upsert(self):
+    def test_1_val_upsert(self):
         """Test the payload validation schema for upsert API."""
 
         # Valid Test Cases
@@ -43,7 +43,7 @@ class TestAPIValidation(unittest.TestCase):
         with self.assertRaises(ValidationError):
             VAL_ADVANCE_QUERY(**invalidTestCase)
 
-    def test_val_query(self):
+    def test_2_val_query(self):
         """Test the payload validation schema for query API."""
 
         now = datetime.now()
@@ -98,7 +98,7 @@ class TestAPIValidation(unittest.TestCase):
             with self.assertRaises(ValidationError):
                 VAL_ADVANCE_QUERY(**invalidTestCase)
 
-    def test_val_advance_query(self):
+    def test_3_val_advance_query(self):
         """Test the payload validation schema for advance query API."""
 
         # Valid Test Cases
@@ -160,6 +160,25 @@ class TestAPIValidation(unittest.TestCase):
                     "filters": {
                         "name": "eraser",
                         "category": "Stationary",
+                        "price_range": [10.0, 10.0],
+                    },
+                    "pagination": {"page": 1, "limit": 5},
+                    "sort": {"field": "category", "order": "asc"},
+                },
+            ),
+            # Test case 4: No name and category
+            (
+                {
+                    "filters": {
+                        "price_range": [10.0, 10.0],
+                    },
+                    "pagination": {"page": 1, "limit": 5},
+                    "sort": {"field": "category", "order": "asc"},
+                },
+                {
+                    "filters": {
+                        "name": None,
+                        "category": None,
                         "price_range": [10.0, 10.0],
                     },
                     "pagination": {"page": 1, "limit": 5},

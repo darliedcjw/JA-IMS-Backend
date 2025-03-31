@@ -21,7 +21,7 @@ class TestDatabaseAgent(unittest.TestCase):
         self.table = os.getenv("DB_TABLE")
         self.dbAgent = DBAgent()
 
-    def test_create_database(self):
+    def test_1_create_database(self):
         """Test the internal create database method."""
 
         try:
@@ -42,7 +42,7 @@ class TestDatabaseAgent(unittest.TestCase):
             if "connection" in locals() and connection.is_connected():
                 connection.close()
 
-    def test_create_table(self):
+    def test_2_create_table(self):
         """Test the internal create table method."""
 
         try:
@@ -65,7 +65,7 @@ class TestDatabaseAgent(unittest.TestCase):
             if "connection" in locals() and connection.is_connected():
                 connection.close()
 
-    def test_upsert(self):
+    def test_3_upsert(self):
         """Test the upsert method."""
 
         # Test case 1: Normal input
@@ -108,127 +108,232 @@ class TestDatabaseAgent(unittest.TestCase):
             if "connection" in locals() and connection.is_connected():
                 connection.close()
 
-    def test_query(self):
+    def test_4_query(self):
         """Test the query method."""
 
-        sampleUpsert = [
-            ("Item 1", "Stationary", "1.70"),
-            ("Item 2", "Stationary", "3.70"),
-            ("Item 3", "Drinks", "2.50"),
-            ("Item 4", "Drinks", "3.50"),
-        ]
+        try:
+            sampleUpsert = [
+                ("Item 1", "Stationary", "1.70"),
+                ("Item 2", "Stationary", "3.70"),
+                ("Item 3", "Drinks", "2.50"),
+                ("Item 4", "Drinks", "3.50"),
+            ]
 
-        testCases = [
-            # Test case 1: All records
-            ((None, None, None, None), sampleUpsert),
-            # Test case 2: Date range ending in future (should get all)
-            ((None, "3000-12-28", None, None), sampleUpsert),
-            # Test case 3: Date range starting from ancient time (should get all)
-            (("1000-12-28", None, None, None), sampleUpsert),
-            # Test case 4: Stationery category
-            ((None, None, "Stationary", "Stationary"), sampleUpsert[:2]),
-            # Test case 5: Non-existent category
-            ((None, None, "NonExistent", "NonExistent"), []),
-            # Test case 6: Specific date range + category
-            (("2023-01-01", "2025-12-31", "Drinks", "Drinks"), sampleUpsert[2:]),
-        ]
+            testCases = [
+                # Test case 1: All records
+                ((None, None, None, None), sampleUpsert),
+                # Test case 2: Date range ending in future (should get all)
+                ((None, "3000-12-28", None, None), sampleUpsert),
+                # Test case 3: Date range starting from ancient time (should get all)
+                (("1000-12-28", None, None, None), sampleUpsert),
+                # Test case 4: Stationery category
+                ((None, None, "Stationary", "Stationary"), sampleUpsert[:2]),
+                # Test case 5: Non-existent category
+                ((None, None, "NonExistent", "NonExistent"), []),
+                # Test case 6: Specific date range + category
+                (("2023-01-01", "2025-12-31", "Drinks", "Drinks"), sampleUpsert[2:]),
+            ]
 
-        for sample in sampleUpsert:
-            self.dbAgent.upsert(sample)
+            for sample in sampleUpsert:
+                self.dbAgent.upsert(sample)
 
-        for testCase, expected in testCases:
-            result = self.dbAgent.query(testCase)
+            for testCase, expected in testCases:
+                result = self.dbAgent.query(testCase)
 
-            resultData = [(row[1], row[2], row[3]) for row in result]
+                resultData = [(row[1], row[2], row[3]) for row in result]
 
-            expectedSorted = sorted(expected)
-            resultSorted = sorted(resultData)
+                expectedSorted = sorted(expected)
+                resultSorted = sorted(resultData)
 
-            self.assertEqual(
-                resultSorted,
-                expectedSorted,
-                f"Query failed for params {testCase}\n"
-                f"Expected: {expectedSorted}\nGot: {resultSorted}",
+                self.assertEqual(
+                    resultSorted,
+                    expectedSorted,
+                    f"Query failed for params {testCase}\n"
+                    f"Expected: {expectedSorted}\nGot: {resultSorted}",
+                )
+
+        finally:
+            connection = mysql.connector.connect(
+                host=self.host,
+                user=self.user,
+                password=self.password,
+                database=self.database,
+            )
+            cursor = connection.cursor()
+
+            cursor.execute(
+                f"""
+                DELETE FROM {self.table}
+                """
             )
 
-    def test_advanceQuery(self):
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+    def test_5_advanceQuery(self):
         """Test the advanceQuery method."""
 
-        sampleUpsert = [
-            ("Item A", "Stationary", "12.50"),
-            ("Item B", "Stationary", "2.75"),
-            ("Item C", "Art Supplies", "5.99"),
-            ("Item D", "Stationary", "1.25"),
-            ("Item E", "Art Supplies", "15.00"),
-        ]
+        try:
+            sampleUpsert = [
+                ("Item A", "Stationary", "12.50"),
+                ("Item B", "Stationary", "2.75"),
+                ("Item C", "Art Supplies", "5.99"),
+                ("Item D", "Stationary", "1.25"),
+                ("Item E", "Art Supplies", "15.00"),
+            ]
 
-        for sample in sampleUpsert:
-            self.dbAgent.upsert(sample)
+            for sample in sampleUpsert:
+                self.dbAgent.upsert(sample)
 
-        testCases = [
-            # Test case 1: Query for Stationary items within price range 1-5
-            (
-                {
-                    "filters": {
-                        "name": "Item B",
-                        "category": "Stationary",
-                        "price_range": [1.0, 5.0],
-                    },
-                    "pagination": {"page": 1, "limit": 10},
-                    "sort": {"field": "price", "order": "asc"},
-                },
-                [(2, "Item B", "Stationary", "2.75")],
-            ),
-            # Test case 2: Query for Art Supplies within price range 5-20
-            (
-                {
-                    "filters": {
-                        "name": "Item C",
-                        "category": "Art Supplies",
-                        "price_range": [5.0, 20.0],
-                    },
-                    "pagination": {"page": 1, "limit": 10},
-                    "sort": {"field": "price", "order": "asc"},
-                },
-                [(3, "Item C", "Art Supplies", "5.99")],
-            ),
-            # Test case 3: Query with no results
-            (
-                {
-                    "filters": {
-                        "name": "NonExistent",
-                        "category": "NonExistent",
-                        "price_range": [1.0, 100.0],
-                    },
-                    "pagination": {"page": 1, "limit": 10},
-                    "sort": {"field": "price", "order": "asc"},
-                },
-                [],
-            ),
-            # Test case 4: Query with pagination
-            (
-                {
-                    "filters": {
-                        "name": "Item A",
-                        "category": "Stationary",
-                        "price_range": [10.0, 15.0],
-                    },
-                    "pagination": {"page": 2, "limit": 5},
-                    "sort": {"field": "name", "order": "desc"},
-                },
-                [(1, "Item A", "Stationary", "12.50")],
-            ),
-        ]
+            testCases = [
+                # Test case 1: Query for Stationary items within price range 1-5
+                (
+                    (
+                        "Item B",
+                        "Item B",
+                        "Stationary",
+                        "Stationary",
+                        1.00,
+                        5.00,
+                        "price",
+                        "price",
+                        "price",
+                        1,
+                        0,
+                        "asc",
+                    ),
+                    [("Item B", "Stationary", "2.75")],
+                ),
+                # Test case 2: Query for Art Supplies within price range 5-20
+                (
+                    (
+                        "Item C",
+                        "Item C",
+                        "Art Supplies",
+                        "Art Supplies",
+                        5.00,
+                        20.00,
+                        "price",
+                        "price",
+                        "price",
+                        1,
+                        0,
+                        "asc",
+                    ),
+                    [("Item C", "Art Supplies", "5.99")],
+                ),
+                # Test case 3: Query with no results
+                (
+                    (
+                        "NonExistent",
+                        "NonExistent",
+                        "NonExistent",
+                        "NonExistent",
+                        1.00,
+                        100.00,
+                        "price",
+                        "price",
+                        "price",
+                        10,
+                        0,
+                        "asc",
+                    ),
+                    [],
+                ),
+                # Test case 4: Query with pagination
+                (
+                    (
+                        "Item A",
+                        "Item A",
+                        "Stationary",
+                        "Stationary",
+                        10.00,
+                        15.00,
+                        "name",
+                        "name",
+                        "name",
+                        1,
+                        0,
+                        "desc",
+                    ),
+                    [("Item A", "Stationary", "12.50")],
+                ),
+                # Test case 5: Query without name and category
+                (
+                    (
+                        None,
+                        None,
+                        None,
+                        None,
+                        2.50,
+                        7.00,
+                        "price",
+                        "price",
+                        "price",
+                        10,
+                        0,
+                        "asc",
+                    ),
+                    [
+                        ("Item B", "Stationary", "2.75"),
+                        ("Item C", "Art Supplies", "5.99"),
+                    ],
+                ),
+                # Test case 6: Query with page offset and limit
+                (
+                    (
+                        None,
+                        None,
+                        None,
+                        None,
+                        2.50,
+                        7.00,
+                        "price",
+                        "price",
+                        "price",
+                        1,
+                        0,
+                        "asc",
+                    ),
+                    [
+                        ("Item B", "Stationary", "2.75"),
+                    ],
+                ),
+            ]
 
-        for testCase, expected in testCases:
-            result = self.dbAgent.advanceQuery(testCase)
+            for testCase, expected in testCases:
+                result = self.dbAgent.advanceQuery(testCase)
+                processed_result = []
 
-            self.assertEqual(
-                result,
-                expected,
-                f"Query failed for params {testCase}\n"
-                f"Expected: {expected}\nGot: {result}",
+                for row in result:
+                    processed_result.append((row[1], row[2], row[3]))
+
+                self.assertEqual(
+                    processed_result,
+                    expected,
+                    f"Query failed for params {testCase}\n"
+                    f"Expected: {expected}\nGot: {processed_result}",
+                )
+
+        finally:
+            connection = mysql.connector.connect(
+                host=self.host,
+                user=self.user,
+                password=self.password,
+                database=self.database,
             )
+            cursor = connection.cursor()
+
+            cursor.execute(
+                f"""
+                DELETE FROM {self.table}
+                """
+            )
+
+            connection.commit()
+            cursor.close()
+            connection.close()
 
 
 if __name__ == "__main__":
