@@ -49,6 +49,7 @@ class DBAgent:
             cursor.execute(searchQuery, (name,))
             itemID = cursor.fetchone()
             connection.commit()
+            logger.info(f"Completed upserting payload...")
 
             return itemID
 
@@ -61,8 +62,9 @@ class DBAgent:
             )
 
         finally:
-            if "connection" in locals() and connection.is_connected():
+            if "cursor" in locals():
                 cursor.close()
+            if "connection" in locals() and connection.is_connected():
                 connection.close()
 
     def query(self, queryInPayload):
@@ -76,11 +78,9 @@ class DBAgent:
             filterQuery = f"""
             SELECT id, name, category, price FROM {self.table}
             WHERE
-                -- Date range filter (both must be provided or omitted)
                 last_updated_dt BETWEEN 
                     COALESCE(%s, '1000-01-01') AND 
                     COALESCE(%s, '9999-12-31')
-                -- Category filter (optional)
                 AND (category = %s OR %s IS NULL)
             """
 
@@ -88,6 +88,7 @@ class DBAgent:
 
             result = cursor.fetchall()
             connection.commit()
+            logger.info(f"Completed querying payload...")
 
             return result
 
@@ -100,17 +101,33 @@ class DBAgent:
             )
 
         finally:
-            if "connection" in locals() and connection.is_connected():
+            if "cursor" in locals():
                 cursor.close()
+            if "connection" in locals() and connection.is_connected():
                 connection.close()
 
-    def _verifyDatabase(self):
-        logger.info(f"Verifying/Creating database - {self.database}...")
+    def advanceQuery(self, advanceQueryInPayload):
+        logger.info(f"Querying advance payload...")
         try:
-            connection = self._establishConnection(useDatabase=False)
-            cursor = connection.cursor()
-            cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.database}")
+            self._verifyDatabase()
+            self._verifyTable()
+            connection = self._establishConnection(useDatabase=True)
+            cursor = connection.cursor(buffered=True)
+
+            filterQuery = f"""
+            SELECT id, name, category, price FROM {self.table}
+            WHERE name = %s AND category = %s AND CAST(price as DECIMAL(10, 2)) BETWEEN %s and %s
+            ORDER BY %s %s
+            LIMIT %s
+            """
+
+            cursor.execute(filterQuery, advanceQueryInPayload)
+
+            result = cursor.fetchall()
             connection.commit()
+            logger.info(f"Completed querying advance payload...")
+
+            return result
 
         except mysql.connector.Error as dbError:
             eMsg = f"Database Error: {dbError}"
@@ -121,8 +138,32 @@ class DBAgent:
             )
 
         finally:
-            if "connection" in locals() and connection.is_connected():
+            if "cursor" in locals():
                 cursor.close()
+            if "connection" in locals() and connection.is_connected():
+                connection.close()
+
+    def _verifyDatabase(self):
+        logger.info(f"Verifying/Creating database - {self.database}...")
+        try:
+            connection = self._establishConnection(useDatabase=False)
+            cursor = connection.cursor()
+            cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.database}")
+            connection.commit()
+            logger.info(f"Completed verifying/creating database - {self.database}...")
+
+        except mysql.connector.Error as dbError:
+            eMsg = f"Database Error: {dbError}"
+            logger.error(eMsg)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=eMsg,
+            )
+
+        finally:
+            if "cursor" in locals():
+                cursor.close()
+            if "connection" in locals() and connection.is_connected():
                 connection.close()
 
     def _verifyTable(self):
@@ -143,6 +184,7 @@ class DBAgent:
 
             cursor.execute(query)
             connection.commit()
+            logger.info(f"Completed verifying/creating table - {self.table}...")
 
         except mysql.connector.Error as dbError:
             eMsg = f"Database Error: {dbError}"
@@ -153,8 +195,9 @@ class DBAgent:
             )
 
         finally:
-            if "connection" in locals() and connection.is_connected():
+            if "cursor" in locals():
                 cursor.close()
+            if "connection" in locals() and connection.is_connected():
                 connection.close()
 
     def _establishConnection(self, useDatabase=None):

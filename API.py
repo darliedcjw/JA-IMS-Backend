@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from Utils.Schemas import VAL_UPSERT, VAL_QUERY
+from Utils.Schemas import *
 from Utils.Logger import createLogger, sessionIDVar
 
 from Services.PackagingAgent import PackagingAgent
@@ -46,7 +46,7 @@ async def session_tracking_middleware(request: Request, call_next):
     return response
 
 
-# API: Insert/Update
+# API: Upsert
 @app.post("/upsert")
 def upsert(upsertPayload: VAL_UPSERT):
     logger.info("Invoked upsert API...")
@@ -57,12 +57,28 @@ def upsert(upsertPayload: VAL_UPSERT):
     return JSONResponse(response, status_code=200)
 
 
+# API: Query
 @app.post("/query")
 def query(queryPayload: VAL_QUERY):
     logger.info("Invoked query API...")
     Listitems = dbAgent.query(packagingAgent.queryIn(queryPayload.model_dump()))
     response = packagingAgent.queryOut(Listitems)
     logger.info("Completed query API...")
+
+    return JSONResponse(response, status_code=200)
+
+
+# API: Advance Query
+@app.post("/advance-query")
+def query(advanceQueryPayload: VAL_ADVANCE_QUERY):
+    logger.info("Invoked advance query API...")
+    Listitems = dbAgent.advanceQuery(
+        packagingAgent.advanceQueryIn(advanceQueryPayload.model_dump())
+    )
+    response = packagingAgent.advanceQueryOut(
+        Listitems, advanceQueryPayload.model_dump()
+    )
+    logger.info("Completed advance query API...")
 
     return JSONResponse(response, status_code=200)
 

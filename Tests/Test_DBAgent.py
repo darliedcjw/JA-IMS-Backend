@@ -11,7 +11,7 @@ import mysql
 from Services.DBAgent import DBAgent
 
 
-class CredentialsTest(unittest.TestCase):
+class TestDatabaseAgent(unittest.TestCase):
     def __init__(self, methodName="runTest"):
         super().__init__(methodName)
         self.host = os.getenv("DB_HOST")
@@ -22,6 +22,8 @@ class CredentialsTest(unittest.TestCase):
         self.dbAgent = DBAgent()
 
     def test_create_database(self):
+        """Test the internal create database method."""
+
         try:
             self.dbAgent._verifyDatabase()
 
@@ -41,6 +43,8 @@ class CredentialsTest(unittest.TestCase):
                 connection.close()
 
     def test_create_table(self):
+        """Test the internal create table method."""
+
         try:
             self.dbAgent._verifyTable()
             connection = mysql.connector.connect(
@@ -62,6 +66,9 @@ class CredentialsTest(unittest.TestCase):
                 connection.close()
 
     def test_upsert(self):
+        """Test the upsert method."""
+
+        # Test case 1: Normal input
         testCase, expected = (("Test Item", "Stationary", "1.70"), int)
 
         try:
@@ -102,6 +109,8 @@ class CredentialsTest(unittest.TestCase):
                 connection.close()
 
     def test_query(self):
+        """Test the query method."""
+
         sampleUpsert = [
             ("Item 1", "Stationary", "1.70"),
             ("Item 2", "Stationary", "3.70"),
@@ -129,18 +138,96 @@ class CredentialsTest(unittest.TestCase):
 
         for testCase, expected in testCases:
             result = self.dbAgent.query(testCase)
-            print(result)
 
-            result_data = [(row[1], row[2], row[3]) for row in result]
+            resultData = [(row[1], row[2], row[3]) for row in result]
 
-            expected_sorted = sorted(expected)
-            result_sorted = sorted(result_data)
+            expectedSorted = sorted(expected)
+            resultSorted = sorted(resultData)
 
             self.assertEqual(
-                result_sorted,
-                expected_sorted,
+                resultSorted,
+                expectedSorted,
                 f"Query failed for params {testCase}\n"
-                f"Expected: {expected_sorted}\nGot: {result_sorted}",
+                f"Expected: {expectedSorted}\nGot: {resultSorted}",
+            )
+
+    def test_advanceQuery(self):
+        """Test the advanceQuery method."""
+
+        sampleUpsert = [
+            ("Item A", "Stationary", "12.50"),
+            ("Item B", "Stationary", "2.75"),
+            ("Item C", "Art Supplies", "5.99"),
+            ("Item D", "Stationary", "1.25"),
+            ("Item E", "Art Supplies", "15.00"),
+        ]
+
+        for sample in sampleUpsert:
+            self.dbAgent.upsert(sample)
+
+        testCases = [
+            # Test case 1: Query for Stationary items within price range 1-5
+            (
+                {
+                    "filters": {
+                        "name": "Item B",
+                        "category": "Stationary",
+                        "price_range": [1.0, 5.0],
+                    },
+                    "pagination": {"page": 1, "limit": 10},
+                    "sort": {"field": "price", "order": "asc"},
+                },
+                [(2, "Item B", "Stationary", "2.75")],
+            ),
+            # Test case 2: Query for Art Supplies within price range 5-20
+            (
+                {
+                    "filters": {
+                        "name": "Item C",
+                        "category": "Art Supplies",
+                        "price_range": [5.0, 20.0],
+                    },
+                    "pagination": {"page": 1, "limit": 10},
+                    "sort": {"field": "price", "order": "asc"},
+                },
+                [(3, "Item C", "Art Supplies", "5.99")],
+            ),
+            # Test case 3: Query with no results
+            (
+                {
+                    "filters": {
+                        "name": "NonExistent",
+                        "category": "NonExistent",
+                        "price_range": [1.0, 100.0],
+                    },
+                    "pagination": {"page": 1, "limit": 10},
+                    "sort": {"field": "price", "order": "asc"},
+                },
+                [],
+            ),
+            # Test case 4: Query with pagination
+            (
+                {
+                    "filters": {
+                        "name": "Item A",
+                        "category": "Stationary",
+                        "price_range": [10.0, 15.0],
+                    },
+                    "pagination": {"page": 2, "limit": 5},
+                    "sort": {"field": "name", "order": "desc"},
+                },
+                [(1, "Item A", "Stationary", "12.50")],
+            ),
+        ]
+
+        for testCase, expected in testCases:
+            result = self.dbAgent.advanceQuery(testCase)
+
+            self.assertEqual(
+                result,
+                expected,
+                f"Query failed for params {testCase}\n"
+                f"Expected: {expected}\nGot: {result}",
             )
 
 

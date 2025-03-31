@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator, model_validator
-from typing import Optional
+from typing import Optional, List, Literal
 from datetime import datetime
 
 
@@ -31,7 +31,31 @@ class VAL_QUERY(BaseModel):
         return self
 
 
-if __name__ == "__main__":
-    print(
-        VAL_UPSERT(name="Test Item", category="Electronics", price="99.99").model_dump()
-    )
+class Filters(BaseModel):
+    name: str
+    category: str
+    price_range: List[float]
+
+    @model_validator(mode="after")
+    def check_price_range(self):
+        # index 0 must be lesser than index 1
+        if self.price_range[0] > self.price_range[1]:
+            raise ValueError("Price at index 0 must be lesser than price at index 1.")
+
+        return self
+
+
+class Pagination(BaseModel):
+    page: int
+    limit: int
+
+
+class Sort(BaseModel):
+    field: Literal["name", "category", "price"]
+    order: Literal["asc", "desc"]
+
+
+class VAL_ADVANCE_QUERY(BaseModel):
+    filters: Filters
+    pagination: Pagination
+    sort: Sort

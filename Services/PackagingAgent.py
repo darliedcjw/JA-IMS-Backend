@@ -16,7 +16,7 @@ class PackagingAgent:
         pass
 
     def upsertIn(self, upsertInPayload):
-        logger.info("Packinging upsertIn payload...")
+        logger.info("Packaging upsertIn payload...")
         return (
             upsertInPayload.get("name"),
             upsertInPayload.get("category"),
@@ -24,11 +24,11 @@ class PackagingAgent:
         )
 
     def upsertOut(self, upsertOutPayload):
-        logger.info("Packinging upsertOut payload...")
+        logger.info("Packaging upsertOut payload...")
         return {"id": upsertOutPayload[0]}
 
     def queryIn(self, queryInPayload):
-        logger.info("Packinging queryIn payload...")
+        logger.info("Packaging queryIn payload...")
         dt_from = (
             datetime.strftime(queryInPayload.get("dt_from"), "%Y-%m-%d %H:%M:%S")
             if queryInPayload.get("dt_from")
@@ -40,10 +40,15 @@ class PackagingAgent:
             else None
         )
         category = queryInPayload.get("category")
-        return (dt_from, dt_to, category, category)
+        return (
+            dt_from,
+            dt_to,
+            category,
+            category,
+        )
 
     def queryOut(self, queryOutPayload):
-        logger.info("Packinging queryOut payload...")
+        logger.info("Packaging queryOut payload...")
         totalPrice = sum(float(item[3]) for item in queryOutPayload)
         return {
             "items": [
@@ -56,4 +61,35 @@ class PackagingAgent:
                 for item in queryOutPayload
             ],
             "total_price": totalPrice,
+        }
+
+    def advanceQueryIn(self, advanceQueryInPayload):
+        logger.info("Packaging advanceQueryIn payload...")
+        return (
+            advanceQueryInPayload.get("filters").get("name"),
+            advanceQueryInPayload.get("filters").get("category"),
+            round(advanceQueryInPayload.get("filters").get("price_range")[0], 2),
+            round(advanceQueryInPayload.get("filters").get("price_range")[1], 2),
+            advanceQueryInPayload.get("sort").get("field"),
+            advanceQueryInPayload.get("sort").get("order"),
+            advanceQueryInPayload.get("pagination").get("page")
+            * advanceQueryInPayload.get("pagination").get("limit"),
+        )
+
+    def advanceQueryOut(self, advanceQueryOutPayload, advanceQueryInPayload):
+        logger.info("Packaging advanceQueryOut payload...")
+        totalCount = len(advanceQueryOutPayload)
+        return {
+            "items": [
+                {
+                    "id": item[0],
+                    "name": item[1],
+                    "category": item[2],
+                    "price": float(item[3]),
+                }
+                for item in advanceQueryOutPayload
+            ],
+            "count": totalCount,
+            "page": advanceQueryInPayload.get("pagination").get("page"),
+            "limit": advanceQueryInPayload.get("pagination").get("limit"),
         }
