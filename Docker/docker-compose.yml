@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  ja-ims-backend:
+    image: darliedcjw/ja-ims-backend
+    container_name: ja-ims-backend
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=mysql-ims-password
+      - DB_DATABASE=IMS
+      - DB_TABLE=INVENTORY
+    ports:
+      - "2000:2000"
+    command: >
+      sh -c "gunicorn -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:2000 API:app"
+
+  ja-ims-frontend:
+    image: darliedcjw/ja-ims-frontend
+    container_name: ja-ims-frontend
+    ports:
+      - "8080:80"  
+  
+  mysql:
+    image: mysql:latest
+    container_name: mysql-prod
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql-ims-password
+      - MYSQL_ROOT_HOST=%
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command:
+      --default-time-zone='+08:00'
+
+volumes:
+  mysql-data:
