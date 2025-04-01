@@ -1,14 +1,14 @@
 # Project Setup and Execution Guide
 
-This guide provides comprehensive instructions for setting up, testing, and running the application. The provided Bash script automates tasks such as virtual environment creation, database initialization (test and production), and application execution. Additionally, Docker Compose can be used to streamline the deployment of the entire service stack.
+This guide provides comprehensive instructions for setting up, testing, and running the backend application. The provided Bash script automates tasks such as virtual environment creation, database initialization (test and live), and application execution. Additionally, Docker Compose can be used to streamline the deployment of the entire service stack.
 
 # Prerequisites
 
 Ensure the following software is installed on your system before proceeding:
 
-- Python 3.x
+- Python 3.11 (Ideal)
 - Docker
-- pip (Python package manager)
+- pip
 - git
 - bash
 
