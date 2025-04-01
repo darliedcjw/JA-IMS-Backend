@@ -6,10 +6,10 @@ This guide provides comprehensive instructions for setting up, testing, and runn
 
 Ensure the following software is installed on your system before proceeding:
 
-- Python 3.11 (Ideal)
-- Docker
-- pip
 - git
+- Python 3.11 (Ideal)
+- pip
+- Docker
 - bash
 
 # Cloning the Repository
@@ -42,11 +42,11 @@ cd JA-IMS-Backend
 bash BashScripts/RunDev.sh
 ```
 
-This method is ideal for local development and testing, as it includes integration tests to validate functionality.
+The backend application can be accessed via via `http://localhost:2000`. This method is ideal for local development and testing, as it includes integration tests to validate functionality.
 
 # [Optional] Running Services via Docker
 
-If you prefer a quick way to deploy all services (JA-IMS-Frontend, JA-IMS-Backend, and MySQL Database), you can use Docker Compose. Note that this method is not recommended if you plan to run integration tests locally, as it bypasses unit testing.
+If you prefer a quick way to deploy all services (JA-IMS-Frontend, JA-IMS-Backend, and MySQL Database), you can use Docker Compose. Note that this method is not recommended if you plan to run integration tests locally, as it bypasses unit testing (only applicable to backend application's unittest).
 
 **Steps**:
 
@@ -56,11 +56,10 @@ If you prefer a quick way to deploy all services (JA-IMS-Frontend, JA-IMS-Backen
 docker compose -f Docker/docker-compose.yml up
 ```
 
-2. Once deployed, access the JA-IMS-Frontend service via your browser at:
+2. Once deployed, access the `JA-IMS-Frontend` and `JA-IMS-Backend` service via your browser at:
 
-```text
-http://localhost:8080
-```
+- `JA-IMS-Frontend` Service - `http://localhost:8080`
+- `JA-IMS-Backend` Service - `http://localhost:2000`
 
 This method provides a fast and easy way to compose and run all services in a containerized environment.
 
