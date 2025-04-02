@@ -18,8 +18,8 @@ class PackagingAgent:
     def upsertIn(self, upsertInPayload):
         logger.info("Packaging upsertIn payload...")
         return (
-            upsertInPayload.get("name"),
-            upsertInPayload.get("category"),
+            upsertInPayload.get("name").strip(),
+            upsertInPayload.get("category").strip(),
             f"{upsertInPayload.get('price'):.2f}",
         )
 
@@ -39,7 +39,7 @@ class PackagingAgent:
             if queryInPayload.get("dt_to")
             else None
         )
-        category = queryInPayload.get("category")
+        category = queryInPayload.get("category").strip()
         return (
             dt_from,
             dt_to,
@@ -65,20 +65,37 @@ class PackagingAgent:
 
     def advanceQueryIn(self, advanceQueryInPayload):
         logger.info("Packaging advanceQueryIn payload...")
+
+        name = (
+            advanceQueryInPayload.get("filters").get("name").strip()
+            if advanceQueryInPayload.get("filters").get("name")
+            else None
+        )
+        category = (
+            advanceQueryInPayload.get("filters").get("category").strip()
+            if advanceQueryInPayload.get("filters").get("category")
+            else None
+        )
+        minPrice = round(advanceQueryInPayload.get("filters").get("price_range")[0], 2)
+        maxPrice = round(advanceQueryInPayload.get("filters").get("price_range")[1], 2)
+        pagLimit = advanceQueryInPayload.get("pagination").get("limit")
+        pagPage = advanceQueryInPayload.get("pagination").get("page")
+        sortField = advanceQueryInPayload.get("sort").get("field")
+        sortOrder = advanceQueryInPayload.get("sort").get("order")
+
         return (
-            advanceQueryInPayload.get("filters").get("name"),
-            advanceQueryInPayload.get("filters").get("name"),
-            advanceQueryInPayload.get("filters").get("category"),
-            advanceQueryInPayload.get("filters").get("category"),
-            round(advanceQueryInPayload.get("filters").get("price_range")[0], 2),
-            round(advanceQueryInPayload.get("filters").get("price_range")[1], 2),
-            advanceQueryInPayload.get("sort").get("field"),
-            advanceQueryInPayload.get("sort").get("field"),
-            advanceQueryInPayload.get("sort").get("field"),
-            advanceQueryInPayload.get("pagination").get("limit"),
-            (advanceQueryInPayload.get("pagination").get("page") - 1)
-            * advanceQueryInPayload.get("pagination").get("limit"),
-            advanceQueryInPayload.get("sort").get("order"),
+            name,
+            name,
+            category,
+            category,
+            minPrice,
+            maxPrice,
+            sortField,
+            sortField,
+            sortField,
+            pagLimit,
+            (pagPage - 1) * pagLimit,
+            sortOrder,
         )
 
     def advanceQueryOut(self, advanceQueryOutPayload, advanceQueryInPayload):

@@ -72,6 +72,7 @@ def query(queryPayload: VAL_QUERY):
 @app.post("/advance-query")
 def query(advanceQueryPayload: VAL_ADVANCE_QUERY):
     logger.info("Invoked advance query API...")
+    print(advanceQueryPayload.model_dump())
     Listitems = dbAgent.advanceQuery(
         packagingAgent.advanceQueryIn(advanceQueryPayload.model_dump())
     )
