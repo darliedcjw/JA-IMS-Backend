@@ -39,7 +39,11 @@ class PackagingAgent:
             if queryInPayload.get("dt_to")
             else None
         )
-        category = queryInPayload.get("category").strip()
+        category = (
+            queryInPayload.get("category").strip()
+            if queryInPayload.get("category")
+            else None
+        )
         return (
             dt_from,
             dt_to,
