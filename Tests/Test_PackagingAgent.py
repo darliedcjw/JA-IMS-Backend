@@ -27,6 +27,11 @@ class TestPackagingAgent(unittest.TestCase):
                 {"name": "Test Item", "category": "Electronics", "price": 99},
                 ("Test Item", "Electronics", "99.00"),
             ),
+            # Test case 3: With trailing white spaces
+            (
+                {"name": "Test Item ", "category": "  Electronics", "price": 99},
+                ("Test Item", "Electronics", "99.00"),
+            ),
         ]
 
         for testCase, expected in testCases:
@@ -77,6 +82,11 @@ class TestPackagingAgent(unittest.TestCase):
             # Test case 4: Without dates
             (
                 {"category": "Electronics"},
+                (None, None, "Electronics", "Electronics"),
+            ),
+            # Test case 5: With trailing white spaces
+            (
+                {"category": "Electronics  "},
                 (None, None, "Electronics", "Electronics"),
             ),
         ]
@@ -244,6 +254,32 @@ class TestPackagingAgent(unittest.TestCase):
                     "filters": {
                         "name": "marker",
                         "category": "Art Supplies",
+                        "price_range": [5.0, 25.0],
+                    },
+                    "pagination": {"page": 10, "limit": 100},
+                    "sort": {"field": "price", "order": "desc"},
+                },
+                (
+                    "marker",
+                    "marker",
+                    "Art Supplies",
+                    "Art Supplies",
+                    5.00,
+                    25.00,
+                    "price",
+                    "price",
+                    "price",
+                    100,
+                    900,
+                    "desc",
+                ),
+            ),
+            # Test case 5: With trailing white spaces
+            (
+                {
+                    "filters": {
+                        "name": "  marker",
+                        "category": "Art Supplies  ",
                         "price_range": [5.0, 25.0],
                     },
                     "pagination": {"page": 10, "limit": 100},
