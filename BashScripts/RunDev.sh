@@ -55,7 +55,8 @@ if ! docker ps -a --format '{{.Names}}' | grep -q "^mysql-ims$"; then
       -e MYSQL_DATABASE=$DB_DATABASE \
       -v mysql-data:/var/lib/mysql \
       -p 3306:3306 \
-      -d mysql:latest || { echo "Failed to start MySQL container"; exit 1; }
+      -d mysql:latest \
+      --default-time-zone='+08:00' || { echo "Failed to start MySQL container"; exit 1; }
 else
     echo "Production database already exists."
     echo "Starting Production Database"
