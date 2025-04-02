@@ -60,7 +60,7 @@ class PackagingAgent:
                 }
                 for item in queryOutPayload
             ],
-            "total_price": totalPrice,
+            "total_price": round(totalPrice, 2),
         }
 
     def advanceQueryIn(self, advanceQueryInPayload):
